@@ -4,14 +4,20 @@ const mongoose=require("mongoose")
 const multer = require('multer');
 const checkAuth = require('../api/middleware/check-auth');
 var Product = require('./../api/models/products');
-
+var bcrypt=require("bcrypt")
+var jwt = require('jsonwebtoken');
 router.get("/:productid",checkAuth,(req,res,next) => {
+    const token = req.cookies.acces_token;
+    const decoded = jwt.verify(token, process.env.JWT_KEY);
+    req.userData ={email:decoded.email,userId:decoded.userId}
+     var token1 = jwt.sign( req.userData, process.env.JWT_KEY, { expiresIn: 300 })
+
     const id = req.params.productid;
     Product.findById(id)
     .exec()
     .then(doc =>{
         console.log(doc);
-        res.status(200).json(doc);
+        res.status(200).json({doc,token1});
     })
     .catch(err =>{
         console.log(err);
